@@ -2,8 +2,6 @@
 
 Dashboard web estático para visualizar métricas de iOS exportadas en JSON por [MetricKitReporter](https://github.com/javiermmdev/ios-metrics-visualizer).
 
-**[Abrir Dashboard](https://javiermmdev.github.io/ios-metrics-visualizer/)**
-
 ## Qué hace
 
 Permite cargar un archivo JSON generado por el paquete Swift `MetricKitReporter` y explorar visualmente todas las métricas de rendimiento de una app iOS: lanzamiento, CPU, memoria, red, animaciones, diagnósticos y más.
