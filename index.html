@@ -1,0 +1,2229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MetricKitReporter Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+<style>
+/* ============================================================
+   VARIABLES — Dracula Dark (default)
+   ============================================================ */
+:root {
+  --bg: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-card: rgba(22, 27, 34, 0.85);
+  --bg-card-hover: rgba(33, 38, 45, 0.92);
+  --bg-elevated: rgba(33, 38, 45, 0.7);
+  --text-primary: #f0f6fc;
+  --text-secondary: rgba(240, 246, 252, 0.65);
+  --text-tertiary: rgba(240, 246, 252, 0.35);
+  --border: rgba(240, 246, 252, 0.08);
+  --border-hover: rgba(240, 246, 252, 0.16);
+  --accent: #8b5cf6;
+  --accent-glow: rgba(139, 92, 246, 0.3);
+  --accent-secondary: #bd93f9;
+  --green: #50fa7b;
+  --green-bg: rgba(80, 250, 123, 0.12);
+  --yellow: #f1fa8c;
+  --yellow-bg: rgba(241, 250, 140, 0.12);
+  --red: #ff5555;
+  --red-bg: rgba(255, 85, 85, 0.12);
+  --orange: #ffb86c;
+  --orange-bg: rgba(255, 184, 108, 0.12);
+  --gray: #6272a4;
+  --gray-bg: rgba(98, 114, 164, 0.15);
+  --purple: #bd93f9;
+  --purple-bg: rgba(189, 147, 249, 0.12);
+  --cyan: #8be9fd;
+  --cyan-bg: rgba(139, 233, 253, 0.12);
+  --pink: #ff79c6;
+  --pink-bg: rgba(255, 121, 198, 0.12);
+  --header-bg: rgba(13, 17, 23, 0.82);
+  --scrollbar-thumb: rgba(255,255,255,0.1);
+  --scrollbar-hover: rgba(255,255,255,0.2);
+  --tooltip-bg: rgba(22, 27, 34, 0.96);
+  --chart-grid: rgba(255,255,255,0.04);
+  --chart-text: rgba(240,246,252,0.5);
+  --gradient1: rgba(139, 92, 246, 0.07);
+  --gradient2: rgba(189, 147, 249, 0.04);
+  --gradient3: rgba(80, 250, 123, 0.03);
+  --radius: 20px;
+  --radius-sm: 12px;
+  --radius-xs: 8px;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --info-gradient: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(139,233,253,0.06));
+}
+
+/* ============================================================
+   LIGHT THEME
+   ============================================================ */
+html.light {
+  --bg: #e8e8ed;
+  --bg-secondary: #f5f5f7;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-card-hover: #ffffff;
+  --bg-elevated: rgba(0, 0, 0, 0.06);
+  --text-primary: #111113;
+  --text-secondary: #484850;
+  --text-tertiary: #7a7a85;
+  --border: rgba(0, 0, 0, 0.14);
+  --border-hover: rgba(0, 0, 0, 0.25);
+  --accent: #6d28d9;
+  --accent-glow: rgba(109, 40, 217, 0.25);
+  --accent-secondary: #7c3aed;
+  --green: #16a34a;
+  --green-bg: rgba(22, 163, 74, 0.12);
+  --yellow: #ca8a04;
+  --yellow-bg: rgba(202, 138, 4, 0.12);
+  --red: #dc2626;
+  --red-bg: rgba(220, 38, 38, 0.1);
+  --orange: #ea580c;
+  --orange-bg: rgba(234, 88, 12, 0.1);
+  --gray: #4b5563;
+  --gray-bg: rgba(75, 85, 99, 0.1);
+  --purple: #7c3aed;
+  --purple-bg: rgba(124, 58, 237, 0.1);
+  --cyan: #0891b2;
+  --cyan-bg: rgba(8, 145, 178, 0.1);
+  --pink: #db2777;
+  --pink-bg: rgba(219, 39, 119, 0.1);
+  --header-bg: rgba(232, 232, 237, 0.9);
+  --scrollbar-thumb: rgba(0,0,0,0.18);
+  --scrollbar-hover: rgba(0,0,0,0.3);
+  --tooltip-bg: #ffffff;
+  --chart-grid: rgba(0,0,0,0.08);
+  --chart-text: #484850;
+  --gradient1: rgba(109, 40, 217, 0.06);
+  --gradient2: rgba(8, 145, 178, 0.04);
+  --gradient3: rgba(22, 163, 74, 0.03);
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --info-gradient: linear-gradient(135deg, rgba(109,40,217,0.08), rgba(8,145,178,0.06));
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; transition: background var(--transition), color var(--transition); }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--header-bg);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  transition: background var(--transition);
+}
+.header-logo {
+  width: 40px; height: 40px; border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--accent), var(--pink));
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 20px; color: #fff; flex-shrink: 0;
+}
+.header-titles { flex: 1; min-width: 180px; }
+.header-titles h1 { font-size: 18px; font-weight: 700; line-height: 1.2; }
+.header-titles .subtitle { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.2px; }
+.header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: var(--radius-xs); border: 1px solid var(--border);
+  background: var(--bg-elevated); color: var(--text-primary);
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: all var(--transition); white-space: nowrap;
+}
+.btn:hover { background: var(--bg-card-hover); border-color: var(--border-hover); transform: translateY(-1px); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-secondary); border-color: var(--accent-secondary); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.theme-toggle {
+  width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border);
+  background: var(--bg-elevated); color: var(--text-primary);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; transition: all var(--transition);
+}
+.theme-toggle:hover { background: var(--bg-card-hover); border-color: var(--border-hover); }
+.report-selector {
+  padding: 6px 10px; border-radius: var(--radius-xs); border: 1px solid var(--border);
+  background: var(--bg-elevated); color: var(--text-primary);
+  font-size: 13px; cursor: pointer;
+}
+.hidden { display: none !important; }
+
+/* ============================================================
+   MAIN CONTAINER
+   ============================================================ */
+.container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+/* ============================================================
+   WELCOME / EMPTY STATE
+   ============================================================ */
+.welcome {
+  text-align: center; padding: 80px 24px;
+  animation: fadeInUp 0.6s ease-out;
+}
+.welcome-icon { font-size: 64px; margin-bottom: 16px; }
+.welcome h2 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+.welcome p { color: var(--text-secondary); font-size: 15px; max-width: 500px; margin: 0 auto 24px; }
+
+/* Paste area */
+.paste-area {
+  max-width: 600px; margin: 0 auto 24px;
+}
+.paste-toggle {
+  cursor: pointer; color: var(--accent); font-size: 13px; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 4px; margin-bottom: 8px;
+  user-select: none;
+}
+.paste-toggle:hover { text-decoration: underline; }
+.paste-textarea {
+  width: 100%; min-height: 120px; max-height: 300px;
+  padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--bg-card); color: var(--text-primary);
+  font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px;
+  resize: vertical; margin-bottom: 8px;
+}
+.paste-textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+/* History section */
+.history-section {
+  max-width: 600px; margin: 32px auto 0;
+  text-align: left;
+}
+.history-section h3 { font-size: 15px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.history-list { display: flex; flex-direction: column; gap: 8px; }
+.history-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--bg-card); cursor: pointer; transition: all var(--transition);
+}
+.history-item:hover { background: var(--bg-card-hover); border-color: var(--border-hover); transform: translateY(-1px); }
+.history-item .hi-info { flex: 1; min-width: 0; }
+.history-item .hi-alias { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.history-item .hi-meta { font-size: 11px; color: var(--text-secondary); }
+.history-item .hi-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.history-item .hi-actions button {
+  background: none; border: none; color: var(--text-tertiary); cursor: pointer; font-size: 14px; padding: 4px;
+  border-radius: 4px; transition: all 0.2s;
+}
+.history-item .hi-actions button:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.clear-history-btn {
+  margin-top: 12px; padding: 6px 12px; font-size: 12px;
+  border-radius: var(--radius-xs); border: 1px solid var(--red);
+  background: var(--red-bg); color: var(--red); cursor: pointer;
+  transition: all 0.2s;
+}
+.clear-history-btn:hover { background: var(--red); color: #fff; }
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+#dashboard { display: none; }
+#dashboard.active { display: block; animation: fadeInUp 0.5s ease-out; }
+
+/* BENTO GRID */
+.bento-grid {
+  display: grid; gap: 16px; margin-bottom: 32px;
+}
+.bento-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.bento-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+/* CARD */
+.card {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: var(--radius); border: 1px solid var(--border);
+  padding: 20px; transition: all var(--transition);
+  animation: cardIn 0.5s ease-out both;
+}
+.card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--border-hover); }
+.card.span-2 { grid-column: span 2; }
+.card.span-full { grid-column: 1 / -1; }
+.card.info-card { background: var(--info-gradient); }
+
+/* Staggered entry */
+.card:nth-child(1) { animation-delay: 0.0s; }
+.card:nth-child(2) { animation-delay: 0.05s; }
+.card:nth-child(3) { animation-delay: 0.1s; }
+.card:nth-child(4) { animation-delay: 0.15s; }
+.card:nth-child(5) { animation-delay: 0.2s; }
+.card:nth-child(6) { animation-delay: 0.25s; }
+.card:nth-child(7) { animation-delay: 0.3s; }
+.card:nth-child(8) { animation-delay: 0.35s; }
+.card:nth-child(9) { animation-delay: 0.4s; }
+.card:nth-child(10) { animation-delay: 0.45s; }
+.card:nth-child(11) { animation-delay: 0.5s; }
+.card:nth-child(12) { animation-delay: 0.55s; }
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Card internals */
+.card-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+}
+.card-icon { font-size: 20px; }
+.card-title { font-size: 14px; font-weight: 600; flex: 1; }
+.health-badge {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 3px 8px; border-radius: 99px;
+}
+.badge-healthy { background: var(--green-bg); color: var(--green); }
+.badge-needsAttention, .badge-warning {
+  background: linear-gradient(135deg, rgba(241,250,140,0.2), rgba(255,184,108,0.15));
+  color: var(--yellow); border: 1px solid rgba(241,250,140,0.3);
+  animation: pulse-warn 2s ease-in-out infinite;
+}
+.badge-critical {
+  background: linear-gradient(135deg, rgba(255,85,85,0.25), rgba(255,121,198,0.15));
+  color: var(--red); border: 1px solid rgba(255,85,85,0.4);
+  animation: pulse-critical 1.5s ease-in-out infinite;
+  text-shadow: 0 0 8px rgba(255,85,85,0.5);
+}
+.badge-contextDependent { background: var(--orange-bg); color: var(--orange); }
+.badge-unknown { background: var(--gray-bg); color: var(--gray); }
+@keyframes pulse-warn { 0%,100%{opacity:1} 50%{opacity:0.75} }
+@keyframes pulse-critical { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.8;transform:scale(1.02)} }
+
+/* Light mode overrides for hardcoded rgba gradients */
+html.light .badge-needsAttention, html.light .badge-warning {
+  background: linear-gradient(135deg, rgba(202,138,4,0.15), rgba(234,88,12,0.1));
+  border-color: rgba(202,138,4,0.3);
+}
+html.light .badge-critical {
+  background: linear-gradient(135deg, rgba(220,38,38,0.15), rgba(219,39,119,0.1));
+  border-color: rgba(220,38,38,0.3);
+  text-shadow: none;
+}
+html.light .semaphore-circle.needsAttention, html.light .semaphore-circle.warning {
+  background: linear-gradient(135deg, rgba(202,138,4,0.15), rgba(234,88,12,0.1));
+  box-shadow: 0 0 16px rgba(202,138,4,0.15);
+}
+html.light .semaphore-circle.critical {
+  background: linear-gradient(135deg, rgba(220,38,38,0.15), rgba(219,39,119,0.08));
+  box-shadow: 0 0 16px rgba(220,38,38,0.15);
+}
+html.light .diag-type.crash {
+  background: linear-gradient(135deg, rgba(220,38,38,0.15), rgba(219,39,119,0.08));
+  border-color: rgba(220,38,38,0.3); text-shadow: none;
+}
+html.light .diag-type.hang {
+  background: linear-gradient(135deg, rgba(202,138,4,0.15), rgba(234,88,12,0.08));
+  border-color: rgba(202,138,4,0.25);
+}
+html.light .diag-type.cpu-exc {
+  background: linear-gradient(135deg, rgba(234,88,12,0.12), rgba(219,39,119,0.06));
+  border-color: rgba(234,88,12,0.25);
+}
+html.light .diag-type.disk-exc {
+  background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(109,40,217,0.06));
+  border-color: rgba(124,58,237,0.25);
+}
+html.light .exit-row.highlight {
+  background: linear-gradient(90deg, rgba(220,38,38,0.08), transparent);
+}
+html.light .exit-row.highlight .er-val { text-shadow: none; }
+html.light .cmp-delta.worse {
+  background: linear-gradient(135deg, rgba(220,38,38,0.1), rgba(219,39,119,0.05));
+  border-color: rgba(220,38,38,0.2);
+}
+html.light .card::before {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+}
+
+.big-value { font-size: 28px; font-weight: 800; line-height: 1.1; margin-bottom: 4px; letter-spacing: -0.5px; }
+.big-unit { font-size: 13px; font-weight: 400; color: var(--text-secondary); margin-left: 4px; }
+
+.metric-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; border-top: 1px solid var(--border); font-size: 13px;
+}
+.metric-row:first-of-type { border-top: none; }
+.metric-label { color: var(--text-secondary); }
+.metric-value { font-weight: 600; }
+
+/* Health semaphore */
+.health-semaphore {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 12px;
+}
+.semaphore-circle {
+  width: 60px; height: 60px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; flex-shrink: 0;
+}
+.semaphore-circle.healthy { background: var(--green-bg); box-shadow: 0 0 20px var(--green-bg), 0 0 40px rgba(80,250,123,0.1); }
+.semaphore-circle.needsAttention, .semaphore-circle.warning {
+  background: linear-gradient(135deg, rgba(241,250,140,0.2), rgba(255,184,108,0.2));
+  box-shadow: 0 0 20px var(--yellow-bg), 0 0 40px rgba(241,250,140,0.15);
+  animation: glow-warn 2s ease-in-out infinite;
+}
+.semaphore-circle.critical {
+  background: linear-gradient(135deg, rgba(255,85,85,0.25), rgba(255,121,198,0.15));
+  box-shadow: 0 0 25px rgba(255,85,85,0.3), 0 0 50px rgba(255,85,85,0.15);
+  animation: glow-critical 1.5s ease-in-out infinite;
+}
+.semaphore-circle.contextDependent { background: var(--orange-bg); box-shadow: 0 0 20px var(--orange-bg); }
+.semaphore-circle.unknown { background: var(--gray-bg); }
+@keyframes glow-warn { 0%,100%{box-shadow:0 0 20px var(--yellow-bg),0 0 40px rgba(241,250,140,0.15)} 50%{box-shadow:0 0 30px var(--yellow-bg),0 0 60px rgba(241,250,140,0.25)} }
+@keyframes glow-critical { 0%,100%{box-shadow:0 0 25px rgba(255,85,85,0.3),0 0 50px rgba(255,85,85,0.15)} 50%{box-shadow:0 0 35px rgba(255,85,85,0.5),0 0 70px rgba(255,85,85,0.25)} }
+.health-text h3 { font-size: 18px; font-weight: 700; }
+.health-text p { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+/* Mini stats */
+.mini-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 14px; }
+.mini-stat {
+  text-align: center; padding: 10px 6px; border-radius: var(--radius-xs);
+  background: var(--bg-elevated); border: 1px solid var(--border);
+}
+.mini-stat .ms-val { font-size: 20px; font-weight: 800; }
+.mini-stat .ms-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Chips */
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 600;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+}
+
+/* Charts */
+.chart-wrap { position: relative; height: 220px; }
+.chart-wrap.tall { height: 260px; }
+.chart-unavailable {
+  display: flex; align-items: center; justify-content: center;
+  height: 200px; color: var(--text-tertiary); font-size: 14px;
+}
+.trend-selector {
+  padding: 4px 8px; border-radius: var(--radius-xs); border: 1px solid var(--border);
+  background: var(--bg-elevated); color: var(--text-primary); font-size: 12px;
+  margin-left: auto;
+}
+
+/* Section titles */
+.section-title {
+  font-size: 20px; font-weight: 700; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title .st-icon { font-size: 22px; }
+
+/* Progress bar (hitch ratio) */
+.progress-bar {
+  width: 100%; height: 6px; border-radius: 3px; background: var(--bg-elevated); margin-top: 8px; overflow: hidden;
+}
+.progress-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+
+/* Exit grid */
+.exit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.exit-col h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; color: var(--text-secondary); }
+.exit-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 4px 0 4px 8px; font-size: 12px; border-left: 3px solid transparent; margin-bottom: 2px;
+}
+.exit-row.highlight {
+  border-left-color: var(--red);
+  background: linear-gradient(90deg, rgba(255,85,85,0.1), transparent);
+  border-radius: 0 4px 4px 0;
+}
+.exit-row.highlight .er-val { color: var(--red); text-shadow: 0 0 6px rgba(255,85,85,0.3); }
+.exit-row .er-label { color: var(--text-secondary); }
+.exit-row .er-val { font-weight: 700; }
+
+/* Diagnostics table */
+.diag-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.diag-table th {
+  text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary);
+  border-bottom: 2px solid var(--border);
+}
+.diag-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.diag-type {
+  display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 700;
+}
+.diag-type.crash {
+  background: linear-gradient(135deg, rgba(255,85,85,0.3), rgba(255,121,198,0.2));
+  color: var(--red); border: 1px solid rgba(255,85,85,0.4);
+  text-shadow: 0 0 6px rgba(255,85,85,0.4);
+  animation: pulse-critical 1.5s ease-in-out infinite;
+}
+.diag-type.hang {
+  background: linear-gradient(135deg, rgba(241,250,140,0.25), rgba(255,184,108,0.2));
+  color: var(--yellow); border: 1px solid rgba(241,250,140,0.35);
+  animation: pulse-warn 2s ease-in-out infinite;
+}
+.diag-type.cpu-exc {
+  background: linear-gradient(135deg, rgba(255,184,108,0.25), rgba(255,121,198,0.15));
+  color: var(--orange); border: 1px solid rgba(255,184,108,0.35);
+}
+.diag-type.disk-exc {
+  background: linear-gradient(135deg, rgba(189,147,249,0.25), rgba(139,92,246,0.15));
+  color: var(--purple); border: 1px solid rgba(189,147,249,0.35);
+}
+.callstack-pre {
+  font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px;
+  background: var(--bg-elevated); padding: 8px; border-radius: var(--radius-xs);
+  overflow-x: auto; max-height: 120px; white-space: pre; color: var(--text-secondary);
+  margin-top: 4px;
+}
+.no-diag { text-align: center; padding: 40px; color: var(--text-tertiary); font-size: 14px; }
+
+/* Drop overlay */
+.drop-overlay {
+  position: fixed; inset: 0; z-index: 999;
+  background: rgba(13,17,23,0.85); backdrop-filter: blur(8px);
+  display: none; align-items: center; justify-content: center;
+  flex-direction: column; gap: 12px;
+}
+.drop-overlay.active { display: flex; }
+.drop-overlay .drop-icon { font-size: 64px; }
+.drop-overlay .drop-text { font-size: 20px; font-weight: 600; color: var(--text-primary); }
+
+/* Share modal */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+  display: none; align-items: center; justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px; max-width: 520px; width: 90%;
+  box-shadow: var(--shadow);
+}
+.modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+.modal-url {
+  width: 100%; padding: 10px; border-radius: var(--radius-xs); border: 1px solid var(--border);
+  background: var(--bg-elevated); color: var(--text-primary);
+  font-family: 'SF Mono', monospace; font-size: 12px; word-break: break-all;
+  margin-bottom: 12px;
+}
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* Comparator */
+.comparator-controls {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.comparator-controls select {
+  padding: 8px 12px; border-radius: var(--radius-xs); border: 1px solid var(--border);
+  background: var(--bg-card); color: var(--text-primary); font-size: 13px;
+  font-family: inherit; cursor: pointer; min-width: 180px;
+}
+.comparator-controls .cmp-vs {
+  font-size: 14px; font-weight: 700; color: var(--text-tertiary); letter-spacing: 1px;
+}
+.cmp-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+.cmp-col { display: flex; flex-direction: column; gap: 8px; }
+.cmp-col-header {
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--text-secondary); padding: 8px 12px;
+  background: var(--bg-elevated); border-radius: var(--radius-xs);
+  text-align: center; border: 1px solid var(--border);
+}
+.cmp-col-header.left { border-left: 3px solid var(--cyan); }
+.cmp-col-header.right { border-left: 3px solid var(--purple); }
+.cmp-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 14px; font-size: 13px; border-radius: var(--radius-xs);
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  transition: var(--transition);
+}
+.cmp-row:hover { border-color: var(--border-hover); }
+.cmp-row .cmp-label { color: var(--text-secondary); font-weight: 500; }
+.cmp-row .cmp-val { font-weight: 700; font-variant-numeric: tabular-nums; }
+.cmp-delta {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 10px 14px; font-size: 13px; border-radius: var(--radius-xs);
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  justify-content: center; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.cmp-delta.better {
+  color: var(--green); background: var(--green-bg); border-color: rgba(80,250,123,0.2);
+}
+.cmp-delta.worse {
+  color: var(--red); background: linear-gradient(135deg, rgba(255,85,85,0.15), rgba(255,121,198,0.08));
+  border-color: rgba(255,85,85,0.3);
+}
+.cmp-delta.neutral { color: var(--text-tertiary); }
+.cmp-delta .arrow { font-size: 16px; }
+.cmp-section-label {
+  grid-column: 1 / -1; font-size: 13px; font-weight: 700; color: var(--accent-secondary);
+  padding: 6px 0 2px; border-bottom: 1px solid var(--border); margin-top: 4px;
+}
+.cmp-no-data {
+  grid-column: 1 / -1; text-align: center; padding: 24px;
+  color: var(--text-tertiary); font-size: 14px;
+}
+@media (max-width: 640px) {
+  .cmp-grid { grid-template-columns: 1fr; }
+  .comparator-controls { flex-direction: column; align-items: stretch; }
+}
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--tooltip-bg); border: 1px solid var(--border);
+  padding: 10px 20px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+  box-shadow: var(--shadow); z-index: 300; transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0;
+  pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1024px) {
+  .bento-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
+  .mini-stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .bento-grid.cols-4, .bento-grid.cols-2 { grid-template-columns: 1fr; }
+  .card.span-2 { grid-column: span 1; }
+  .card.span-full { grid-column: span 1; }
+  .header { padding: 10px 16px; }
+  .container { padding: 16px; }
+  .exit-grid { grid-template-columns: 1fr; }
+  .mini-stats { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">M</div>
+  <div class="header-titles">
+    <h1>MetricKitReporter Dashboard</h1>
+    <div class="subtitle">NTTDATA Reports iOS</div>
+  </div>
+  <div class="header-actions">
+    <label class="btn btn-primary" style="margin:0">
+      <span>&#128193;</span> Cargar JSON
+      <input type="file" id="fileInput" accept=".json" style="display:none">
+    </label>
+    <button class="btn" id="btnDemo"><span>&#9889;</span> Demo</button>
+    <button class="btn hidden" id="btnShare"><span>&#128279;</span> Compartir</button>
+    <button class="btn hidden" id="btnInicio"><span>&#127968;</span> Inicio</button>
+    <select class="report-selector hidden" id="reportSelector"></select>
+    <button class="theme-toggle" id="themeToggle" title="Cambiar tema">&#127769;</button>
+  </div>
+</div>
+
+<!-- DROP OVERLAY -->
+<div class="drop-overlay" id="dropOverlay">
+  <div class="drop-icon">&#128230;</div>
+  <div class="drop-text">Suelta el archivo JSON aqui</div>
+</div>
+
+<!-- SHARE MODAL -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal">
+    <h3>&#128279; Compartir Dashboard</h3>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Copia esta URL para compartir el dashboard con los datos actuales:</p>
+    <textarea class="modal-url" id="shareUrl" rows="3" readonly></textarea>
+    <div class="modal-actions">
+      <button class="btn" id="btnCopyUrl"><span>&#128203;</span> Copiar</button>
+      <button class="btn" id="btnCloseModal">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MAIN CONTENT -->
+<div class="container">
+  <!-- WELCOME -->
+  <div id="welcome" class="welcome">
+    <div class="welcome-icon">&#128202;</div>
+    <h2>MetricKitReporter Dashboard</h2>
+    <p>Carga un archivo JSON de MetricKit, pega los datos o usa el boton Demo para explorar el dashboard.</p>
+
+    <div class="paste-area">
+      <div class="paste-toggle" id="pasteToggle">&#9660; Pegar JSON manualmente</div>
+      <div id="pasteContainer" class="hidden">
+        <textarea class="paste-textarea" id="pasteTextarea" placeholder='Pega aqui el contenido JSON de MetricKit...'></textarea>
+        <button class="btn btn-primary btn-sm" id="btnPasteLoad">Cargar JSON pegado</button>
+      </div>
+    </div>
+
+    <div class="history-section" id="historySection"></div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard">
+    <div class="section-title"><span class="st-icon">&#128200;</span> Resumen</div>
+    <div class="bento-grid cols-4" id="bento-overview"></div>
+
+    <div class="section-title" style="margin-top:32px"><span class="st-icon">&#128202;</span> Metricas</div>
+    <div class="bento-grid cols-4" id="bento-metrics"></div>
+
+    <div class="section-title" style="margin-top:32px"><span class="st-icon">&#128200;</span> Graficos</div>
+    <div class="bento-grid cols-2" id="bento-charts"></div>
+
+    <div class="section-title" style="margin-top:32px"><span class="st-icon">&#128027;</span> Diagnosticos</div>
+    <div id="diagnostics-container"></div>
+
+    <div class="section-title hidden" id="comparator-title" style="margin-top:32px"><span class="st-icon">&#128260;</span> Comparador de Informes</div>
+    <div id="comparator-container" class="hidden"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   GLOBALS
+   ============================================================ */
+let currentData = null;
+let currentReportIndex = 0;
+let chartInstances = [];
+const HISTORY_KEY = 'mkr_dashboard_history';
+
+/* ============================================================
+   SWEETALERT2 HELPERS
+   ============================================================ */
+const swalDark = () => document.documentElement.classList.contains('light') ? {} : {
+  background: '#161b22', color: '#f0f6fc',
+  confirmButtonColor: '#8b5cf6', cancelButtonColor: '#6272a4'
+};
+
+function swalError(msg) {
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({ icon: 'error', title: 'Error', text: msg, ...swalDark() });
+  } else { console.error(msg); }
+}
+
+function swalSuccess(msg) {
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({ icon: 'success', title: msg, showConfirmButton: false, timer: 1500, ...swalDark() });
+  }
+}
+
+async function swalConfirm(title, text) {
+  if (typeof Swal !== 'undefined') {
+    const r = await Swal.fire({
+      title, text, icon: 'warning', showCancelButton: true,
+      confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar', ...swalDark()
+    });
+    return r.isConfirmed;
+  }
+  return confirm(text);
+}
+
+async function swalPrompt(title, defaultVal) {
+  if (typeof Swal !== 'undefined') {
+    const r = await Swal.fire({
+      title, input: 'text', inputValue: defaultVal || '',
+      showCancelButton: true, confirmButtonText: 'Guardar', cancelButtonText: 'Cancelar',
+      inputValidator: (v) => !v ? 'Escribe un nombre' : null,
+      ...swalDark()
+    });
+    return r.isConfirmed ? r.value : null;
+  }
+  return prompt(title, defaultVal);
+}
+
+/* ============================================================
+   UTILITY FUNCTIONS
+   ============================================================ */
+function val(obj, path, fallback) {
+  try {
+    if (obj == null) return fallback;
+    const parts = path.split('.');
+    let cur = obj;
+    for (const p of parts) {
+      if (cur == null) return fallback;
+      cur = cur[p];
+    }
+    return (cur === undefined || cur === null) ? fallback : cur;
+  } catch { return fallback; }
+}
+
+function fmt(n, decimals, unit) {
+  if (n == null || isNaN(n)) return '--';
+  const v = typeof n === 'string' ? parseFloat(n) : n;
+  if (isNaN(v)) return '--';
+  const s = decimals != null ? v.toFixed(decimals) : v.toLocaleString('es-ES');
+  return unit ? s + ' ' + unit : s;
+}
+
+function fmtBytes(b) {
+  if (b == null || isNaN(b)) return '--';
+  if (b < 1024) return fmt(b, 0, 'B');
+  if (b < 1048576) return fmt(b / 1024, 1, 'KB');
+  if (b < 1073741824) return fmt(b / 1048576, 1, 'MB');
+  return fmt(b / 1073741824, 2, 'GB');
+}
+
+function fmtMs(ms) {
+  if (ms == null || isNaN(ms)) return '--';
+  if (ms < 1000) return fmt(ms, 0, 'ms');
+  return fmt(ms / 1000, 2, 's');
+}
+
+function fmtTime(s) {
+  if (s == null || isNaN(s)) return '--';
+  const sec = typeof s === 'string' ? parseFloat(s) : s;
+  if (isNaN(sec)) return '--';
+  if (sec < 60) return fmt(sec, 1, 's');
+  if (sec < 3600) return fmt(sec / 60, 1, 'min');
+  return fmt(sec / 3600, 1, 'h');
+}
+
+function fmtDate(str) {
+  if (!str) return '--';
+  try {
+    const d = new Date(str);
+    return d.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  } catch { return str; }
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+function healthColor(status) {
+  if (!status) return 'unknown';
+  const s = String(status).toLowerCase();
+  if (s === 'healthy') return 'healthy';
+  if (s === 'needsattention' || s === 'warning') return 'needsAttention';
+  if (s === 'critical') return 'critical';
+  if (s === 'contextdependent') return 'contextDependent';
+  return 'unknown';
+}
+
+function healthLabel(status) {
+  const c = healthColor(status);
+  switch (c) {
+    case 'healthy': return 'Healthy';
+    case 'needsAttention': return 'Needs Attention';
+    case 'critical': return 'Critical';
+    case 'contextDependent': return 'Context Dependent';
+    case 'notEnoughReference': return 'No Reference';
+    default: return status || 'Unknown';
+  }
+}
+
+function healthBadge(status) {
+  if (!status) return '';
+  const c = healthColor(status);
+  const cls = c === 'needsAttention' ? 'badge-needsAttention' : c === 'contextDependent' ? 'badge-contextDependent' : 'badge-' + c;
+  return `<span class="health-badge ${cls}">${healthLabel(status)}</span>`;
+}
+
+function healthIcon(status) {
+  const c = healthColor(status);
+  if (c === 'healthy') return '\u2705';
+  if (c === 'needsAttention') return '\u26A0\uFE0F';
+  if (c === 'critical') return '\u274C';
+  if (c === 'contextDependent') return '\u{1F7E0}';
+  return '\u2754';
+}
+
+/* ============================================================
+   DATA NORMALIZER
+   ============================================================ */
+function normalizeReport(r) {
+  if (!r) return r;
+  // Detect Format B: has launch.timeToFirstDraw but NOT timeToFirstDrawAverage
+  const isFormatB = r.launch && ('timeToFirstDraw' in r.launch) && !('timeToFirstDrawAverage' in r.launch);
+  if (!isFormatB) return r;
+
+  const n = JSON.parse(JSON.stringify(r)); // deep clone
+
+  // Launch: seconds -> ms
+  if (n.launch) {
+    if (n.launch.timeToFirstDraw != null) {
+      n.launch.timeToFirstDrawAverage = n.launch.timeToFirstDraw * 1000;
+      delete n.launch.timeToFirstDraw;
+      delete n.launch.timeToFirstDraw_unit;
+    }
+    if (n.launch.resumeTime != null) {
+      n.launch.resumeTimeAverage = n.launch.resumeTime * 1000;
+      delete n.launch.resumeTime;
+      delete n.launch.resumeTime_unit;
+    }
+    if (n.launch.optimizedTimeToFirstDraw != null) {
+      n.launch.optimizedTimeToFirstDrawAverage = n.launch.optimizedTimeToFirstDraw * 1000;
+      delete n.launch.optimizedTimeToFirstDraw;
+      delete n.launch.optimizedTimeToFirstDraw_unit;
+    }
+  }
+
+  // Responsiveness: seconds -> ms
+  if (n.responsiveness) {
+    if (n.responsiveness.hangTime != null) {
+      n.responsiveness.hangTimeAverage = n.responsiveness.hangTime * 1000;
+      delete n.responsiveness.hangTime;
+      delete n.responsiveness.hangTime_unit;
+    }
+  }
+
+  // CPU: seconds -> ms
+  if (n.cpu) {
+    if (n.cpu.cumulativeCPUTime != null) {
+      n.cpu.cumulativeCPUTime = n.cpu.cumulativeCPUTime * 1000;
+      delete n.cpu.cumulativeCPUTime_unit;
+    }
+    if (n.cpu.cpuInstructions != null) {
+      n.cpu.cumulativeCPUInstructions = n.cpu.cpuInstructions;
+      delete n.cpu.cpuInstructions;
+      delete n.cpu.cpuInstructions_unit;
+    }
+  }
+
+  // GPU: seconds -> ms
+  if (n.gpu) {
+    if (n.gpu.cumulativeGPUTime != null) {
+      n.gpu.cumulativeGPUTime = n.gpu.cumulativeGPUTime * 1000;
+      delete n.gpu.cumulativeGPUTime_unit;
+    }
+  }
+
+  // Memory: MB -> bytes
+  if (n.memory) {
+    if (n.memory.peakMemory != null) {
+      n.memory.peakMemoryUsage = n.memory.peakMemory * 1048576;
+      delete n.memory.peakMemory;
+      delete n.memory.peakMemory_unit;
+    }
+    if (n.memory.averageSuspendedMemory != null) {
+      n.memory.averageSuspendedMemory = n.memory.averageSuspendedMemory * 1048576;
+      delete n.memory.averageSuspendedMemory_unit;
+    }
+  }
+
+  // Disk -> diskIO: MB -> bytes
+  if (n.disk) {
+    n.diskIO = {};
+    if (n.disk.logicalWrites != null) {
+      n.diskIO.cumulativeBytesWritten = n.disk.logicalWrites * 1048576;
+    }
+    delete n.disk;
+  }
+
+  // Network: MB -> bytes
+  if (n.network) {
+    const net = n.network;
+    const out = {};
+    if (net.wifiDown != null) out.cumulativeWifiDownload = net.wifiDown * 1048576;
+    if (net.wifiUp != null) out.cumulativeWifiUpload = net.wifiUp * 1048576;
+    if (net.cellularDown != null) out.cumulativeCellularDownload = net.cellularDown * 1048576;
+    if (net.cellularUp != null) out.cumulativeCellularUpload = net.cellularUp * 1048576;
+    if (net.transferUp != null) out.totalUpload = net.transferUp * 1048576;
+    if (net.transferDown != null) out.totalDownload = net.transferDown * 1048576;
+    n.network = out;
+  }
+
+  // Display: keep as-is but clean units
+  if (n.display) {
+    delete n.display.averagePixelLuminance_unit;
+  }
+
+  // appRuntime -> appRunTime
+  if (n.appRuntime) {
+    n.appRunTime = {};
+    if (n.appRuntime.cumulativeForegroundTime != null) {
+      n.appRunTime.cumulativeForegroundTime = n.appRuntime.cumulativeForegroundTime;
+    }
+    if (n.appRuntime.cumulativeBackgroundTime != null) {
+      n.appRunTime.cumulativeBackgroundTime = n.appRuntime.cumulativeBackgroundTime;
+    }
+    if (n.appRuntime.cumulativeBackgroundAudioTime != null) {
+      n.appRunTime.cumulativeBackgroundAudioTime = n.appRuntime.cumulativeBackgroundAudioTime;
+    }
+    if (n.appRuntime.cumulativeBackgroundLocationTime != null) {
+      n.appRunTime.cumulativeBackgroundLocationTime = n.appRuntime.cumulativeBackgroundLocationTime;
+    }
+    // clean unit fields
+    delete n.appRuntime;
+  }
+  if (n.appRunTime) {
+    Object.keys(n.appRunTime).forEach(k => {
+      if (k.endsWith('_unit')) delete n.appRunTime[k];
+    });
+  }
+
+  // Animation: clean units. ratio is kept as-is (small decimal)
+  if (n.animation) {
+    // If ratio is very small (< 1), convert to ms/s style percentage
+    // Actually for Format A the scrollHitchRatio is a percentage like 5.2 (meaning 5.2 ms/s)
+    // For Format B it's a raw ratio like 0.0012
+    // We'll convert: ratio * 1000 to get ms/s
+    if (n.animation.scrollHitchRatio != null && n.animation.scrollHitchRatio_unit === 'ratio') {
+      n.animation.scrollHitchRatio = n.animation.scrollHitchRatio * 1000;
+    }
+    delete n.animation.scrollHitchRatio_unit;
+  }
+
+  // appExits -> appExitMetrics
+  if (n.appExits) {
+    n.appExitMetrics = {};
+    if (n.appExits.foreground) n.appExitMetrics.foregroundExitCounts = n.appExits.foreground;
+    if (n.appExits.background) n.appExitMetrics.backgroundExitCounts = n.appExits.background;
+    delete n.appExits;
+  }
+
+  // Health: convert string values to objects
+  if (n.health) {
+    const h = n.health;
+    const newH = {};
+    let statuses = [];
+    for (const [key, value] of Object.entries(h)) {
+      if (key === 'overallStatus' || key === 'overallSummary') {
+        newH[key] = value;
+        continue;
+      }
+      if (typeof value === 'string') {
+        newH[key] = { status: value, summary: '' };
+        statuses.push(value);
+      } else if (typeof value === 'object' && value !== null) {
+        newH[key] = value;
+        if (value.status) statuses.push(value.status);
+      }
+    }
+    // Compute overallStatus if missing
+    if (!newH.overallStatus) {
+      if (statuses.some(s => s === 'critical')) newH.overallStatus = 'critical';
+      else if (statuses.some(s => s === 'warning' || s === 'needsAttention')) newH.overallStatus = 'needsAttention';
+      else if (statuses.every(s => s === 'healthy')) newH.overallStatus = 'healthy';
+      else newH.overallStatus = 'contextDependent';
+    }
+    if (!newH.overallSummary) newH.overallSummary = '';
+    n.health = newH;
+  }
+
+  return n;
+}
+
+function normalizeData(data) {
+  if (!data) return data;
+  const d = JSON.parse(JSON.stringify(data));
+  if (d.reports && Array.isArray(d.reports)) {
+    d.reports = d.reports.map(r => normalizeReport(r));
+  }
+  return d;
+}
+
+/* ============================================================
+   DEMO DATA GENERATOR
+   ============================================================ */
+function generateDemoData() {
+  const now = new Date();
+  const day = (offset) => { const d = new Date(now); d.setDate(d.getDate() + offset); return d.toISOString(); };
+
+  // ─── Report 1: BAD DAY — crashes, hangs, high memory, slow launch ───
+  const report1 = {
+    reportID: 'RPT-001',
+    generatedAt: day(-2),
+    appVersion: '2.1.0',
+    buildVersion: '100',
+    deviceType: 'iPhone15,2',
+    osVersion: '17.5',
+    launch: { timeToFirstDrawAverage: 620, resumeTimeAverage: 280, optimizedTimeToFirstDrawAverage: 480 },
+    responsiveness: { hangTimeAverage: 3200, hangCount: 7 },
+    cpu: { cumulativeCPUTime: 72000, cumulativeCPUInstructions: 1450000000 },
+    gpu: { cumulativeGPUTime: 38000 },
+    memory: { peakMemoryUsage: 385000000, averageSuspendedMemory: 125000000 },
+    diskIO: { cumulativeBytesWritten: 280000000 },
+    network: {
+      cumulativeWifiDownload: 95000000, cumulativeWifiUpload: 12000000,
+      cumulativeCellularDownload: 42000000, cumulativeCellularUpload: 6000000
+    },
+    display: { averagePixelLuminance: 0.72 },
+    appRunTime: { cumulativeForegroundTime: 16200, cumulativeBackgroundTime: 5400 },
+    animation: { scrollHitchRatio: 14.2 },
+    appExitMetrics: {
+      foregroundExitCounts: {
+        normalAppExit: 8, abnormalAppExit: 3, watchdogExit: 2,
+        memoryResourceLimitExit: 1, badAccessExit: 1, illegalInstructionExit: 0
+      },
+      backgroundExitCounts: {
+        normalAppExit: 22, abnormalAppExit: 4, watchdogExit: 1,
+        memoryResourceLimitExit: 3, suspendedWithLockedFileExit: 1,
+        backgroundTaskAssertionTimeoutExit: 5
+      }
+    },
+    health: {
+      overallStatus: 'critical',
+      overallSummary: 'Multiple critical issues detected. Crashes and excessive memory usage require immediate attention.',
+      launch: { status: 'needsAttention', summary: 'TTFD above 500ms threshold' },
+      responsiveness: { status: 'critical', summary: '7 hangs detected, total hang time over 3 seconds' },
+      cpu: { status: 'needsAttention', summary: 'CPU time above expected range' },
+      gpu: { status: 'contextDependent', summary: 'GPU usage depends on app type' },
+      memory: { status: 'critical', summary: 'Peak memory 367 MB, risk of OOM termination' },
+      diskIO: { status: 'needsAttention', summary: 'High disk writes may impact battery' },
+      network: { status: 'contextDependent', summary: 'Network usage depends on app functionality' },
+      display: { status: 'healthy', summary: 'Luminance within normal range' },
+      appRunTime: { status: 'contextDependent', summary: 'Runtime depends on user patterns' },
+      animation: { status: 'critical', summary: 'Scroll hitch ratio 14.2 ms/s, well above 10 ms/s threshold' },
+      appExits: { status: 'critical', summary: 'Multiple abnormal exits and watchdog kills detected' },
+      diagnostics: { status: 'critical', summary: '2 crash reports and 3 hang reports found' }
+    },
+    diagnostics: {
+      crashes: [
+        {
+          exceptionType: 'EXC_BAD_ACCESS',
+          exceptionCode: 'KERN_INVALID_ADDRESS',
+          signal: 'SIGSEGV',
+          terminationReason: 'Namespace SIGNAL, Code 11',
+          virtualMemoryRegionInfo: '0x0 is not in any region',
+          callStackTree: '0 CoreFoundation  0x1a2b3c4d5 __exceptionPreprocess + 220\n1 libobjc.A.dylib  0x1a2b3c4d6 objc_exception_throw + 60\n2 NTTApp  0x1045a2b3c -[DataManager fetchRecords:] + 124\n3 NTTApp  0x1045a3f4d -[SyncService performSync] + 88\n4 NTTApp  0x1045b1234 -[AppDelegate applicationDidBecomeActive:] + 44'
+        },
+        {
+          exceptionType: 'EXC_BREAKPOINT',
+          exceptionCode: '0x0000000000000001',
+          signal: 'SIGTRAP',
+          terminationReason: 'Namespace SIGNAL, Code 5',
+          callStackTree: '0 NTTApp  0x104622f00 specialized Array._checkSubscript + 44\n1 NTTApp  0x10461a8b0 -[CacheManager objectAtIndex:] + 128\n2 NTTApp  0x10461b920 -[ImageLoader loadThumbnails] + 312'
+        }
+      ],
+      hangs: [
+        {
+          hangDuration: 4200,
+          callStackTree: '0 libsystem_kernel.dylib  0x1a3c4d5e6 __psynch_cvwait + 8\n1 NTTApp  0x1045c5678 -[NetworkManager synchronousRequest:] + 312\n2 NTTApp  0x1045c6789 -[APIClient fetchUserProfile] + 156\n3 NTTApp  0x1045d789a -[ProfileViewController viewDidLoad] + 200'
+        },
+        {
+          hangDuration: 2100,
+          callStackTree: '0 NTTApp  0x1045e2300 -[DatabaseManager migrateSchema] + 1024\n1 NTTApp  0x1045e3400 -[AppStartup runMigrations] + 256\n2 NTTApp  0x1045e4500 -[AppDelegate application:didFinishLaunchingWithOptions:] + 180'
+        },
+        {
+          hangDuration: 1800,
+          callStackTree: '0 NTTApp  0x1045f1000 -[JSONParser parsePayload:] + 2048\n1 NTTApp  0x1045f2100 -[SyncService processResponse:] + 512'
+        }
+      ],
+      cpuExceptions: [
+        {
+          totalCPUTime: 58200,
+          totalSampledTime: 60000,
+          callStackTree: '0 NTTApp  0x1045e8901 -[ImageProcessor processAllImages:] + 2048\n1 NTTApp  0x1045e9012 -[GalleryManager loadGallery] + 512\n2 NTTApp  0x1045f0123 -[HomeViewController refreshContent] + 256'
+        }
+      ],
+      diskWriteExceptions: [
+        {
+          writesCaused: 245000000,
+          callStackTree: '0 NTTApp  0x10460a234 -[CacheManager writeToCache:] + 1024\n1 NTTApp  0x10460b345 -[DataPersistence saveAllRecords] + 768'
+        }
+      ]
+    }
+  };
+
+  // ─── Report 2: IMPROVING — fewer issues, some warnings remain ───
+  const report2 = {
+    reportID: 'RPT-002',
+    generatedAt: day(-1),
+    appVersion: '2.1.1',
+    buildVersion: '105',
+    deviceType: 'iPhone16,1',
+    osVersion: '18.0',
+    launch: { timeToFirstDrawAverage: 380, resumeTimeAverage: 150, optimizedTimeToFirstDrawAverage: 290 },
+    responsiveness: { hangTimeAverage: 1100, hangCount: 2 },
+    cpu: { cumulativeCPUTime: 42000, cumulativeCPUInstructions: 920000000 },
+    gpu: { cumulativeGPUTime: 22000 },
+    memory: { peakMemoryUsage: 210000000, averageSuspendedMemory: 72000000 },
+    diskIO: { cumulativeBytesWritten: 95000000 },
+    network: {
+      cumulativeWifiDownload: 65000000, cumulativeWifiUpload: 8000000,
+      cumulativeCellularDownload: 18000000, cumulativeCellularUpload: 2500000
+    },
+    display: { averagePixelLuminance: 0.55 },
+    appRunTime: { cumulativeForegroundTime: 12600, cumulativeBackgroundTime: 3800 },
+    animation: { scrollHitchRatio: 6.8 },
+    appExitMetrics: {
+      foregroundExitCounts: {
+        normalAppExit: 15, abnormalAppExit: 1, watchdogExit: 0,
+        memoryResourceLimitExit: 0, badAccessExit: 0, illegalInstructionExit: 0
+      },
+      backgroundExitCounts: {
+        normalAppExit: 38, abnormalAppExit: 1, watchdogExit: 0,
+        memoryResourceLimitExit: 0, suspendedWithLockedFileExit: 0,
+        backgroundTaskAssertionTimeoutExit: 1
+      }
+    },
+    health: {
+      overallStatus: 'needsAttention',
+      overallSummary: 'Significant improvement over previous report. Some metrics still need monitoring.',
+      launch: { status: 'healthy', summary: 'Launch time within acceptable range after fix' },
+      responsiveness: { status: 'needsAttention', summary: '2 hangs still detected, reduced from 7' },
+      cpu: { status: 'healthy', summary: 'CPU usage back to normal range' },
+      gpu: { status: 'contextDependent', summary: 'GPU usage depends on app type' },
+      memory: { status: 'healthy', summary: 'Peak memory 200 MB, within safe range' },
+      diskIO: { status: 'healthy', summary: 'Disk writes reduced significantly' },
+      network: { status: 'contextDependent', summary: 'Lower traffic, fewer sync operations' },
+      display: { status: 'healthy', summary: 'Luminance within normal range' },
+      appRunTime: { status: 'contextDependent', summary: 'Slightly less usage this period' },
+      animation: { status: 'needsAttention', summary: 'Hitch ratio 6.8 ms/s, in investigation zone (5-10)' },
+      appExits: { status: 'healthy', summary: 'Only 1 abnormal exit, no watchdog kills' },
+      diagnostics: { status: 'healthy', summary: 'No crashes, 1 minor hang' }
+    },
+    diagnostics: {
+      crashes: [],
+      hangs: [
+        {
+          hangDuration: 1100,
+          callStackTree: '0 NTTApp  0x1045f1000 -[JSONParser parsePayload:] + 2048\n1 NTTApp  0x1045f2100 -[SyncService processResponse:] + 512'
+        }
+      ],
+      cpuExceptions: [],
+      diskWriteExceptions: []
+    }
+  };
+
+  // ─── Report 3: HEALTHY — everything green, no issues ───
+  const report3 = {
+    reportID: 'RPT-003',
+    generatedAt: day(0),
+    appVersion: '2.2.0',
+    buildVersion: '110',
+    deviceType: 'iPhone16,2',
+    osVersion: '18.1',
+    launch: { timeToFirstDrawAverage: 245, resumeTimeAverage: 95, optimizedTimeToFirstDrawAverage: 190 },
+    responsiveness: { hangTimeAverage: 180, hangCount: 0 },
+    cpu: { cumulativeCPUTime: 28000, cumulativeCPUInstructions: 680000000 },
+    gpu: { cumulativeGPUTime: 15000 },
+    memory: { peakMemoryUsage: 145000000, averageSuspendedMemory: 52000000 },
+    diskIO: { cumulativeBytesWritten: 48000000 },
+    network: {
+      cumulativeWifiDownload: 42000000, cumulativeWifiUpload: 5500000,
+      cumulativeCellularDownload: 12000000, cumulativeCellularUpload: 1800000
+    },
+    display: { averagePixelLuminance: 0.48 },
+    appRunTime: { cumulativeForegroundTime: 14400, cumulativeBackgroundTime: 4200 },
+    animation: { scrollHitchRatio: 2.1 },
+    appExitMetrics: {
+      foregroundExitCounts: {
+        normalAppExit: 22, abnormalAppExit: 0, watchdogExit: 0,
+        memoryResourceLimitExit: 0, badAccessExit: 0, illegalInstructionExit: 0
+      },
+      backgroundExitCounts: {
+        normalAppExit: 48, abnormalAppExit: 0, watchdogExit: 0,
+        memoryResourceLimitExit: 0, suspendedWithLockedFileExit: 0,
+        backgroundTaskAssertionTimeoutExit: 0
+      }
+    },
+    health: {
+      overallStatus: 'healthy',
+      overallSummary: 'All metrics within healthy parameters. Great improvement across the board.',
+      launch: { status: 'healthy', summary: 'TTFD 245ms, well under 400ms target' },
+      responsiveness: { status: 'healthy', summary: 'Zero hangs detected' },
+      cpu: { status: 'healthy', summary: 'CPU usage optimal' },
+      gpu: { status: 'healthy', summary: 'GPU time reduced after shader optimization' },
+      memory: { status: 'healthy', summary: 'Peak 138 MB, well within limits' },
+      diskIO: { status: 'healthy', summary: 'Minimal disk writes' },
+      network: { status: 'healthy', summary: 'Efficient network usage' },
+      display: { status: 'healthy', summary: 'Normal luminance' },
+      appRunTime: { status: 'healthy', summary: 'Normal usage patterns' },
+      animation: { status: 'healthy', summary: 'Scroll hitch ratio 2.1 ms/s, excellent' },
+      appExits: { status: 'healthy', summary: 'All exits normal, zero abnormal terminations' },
+      diagnostics: { status: 'healthy', summary: 'Zero crashes, hangs, or exceptions' }
+    },
+    diagnostics: {
+      crashes: [],
+      hangs: [],
+      cpuExceptions: [],
+      diskWriteExceptions: []
+    }
+  };
+
+  return {
+    exportedAt: now.toISOString(),
+    bundleIdentifier: 'com.nttdata.demoapp',
+    reports: [report1, report2, report3]
+  };
+}
+
+/* ============================================================
+   HISTORY MANAGEMENT
+   ============================================================ */
+function getHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+  } catch { return []; }
+}
+
+function saveHistory(list) {
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); } catch {}
+}
+
+function addToHistory(data) {
+  const list = getHistory();
+  const r = (data.reports && data.reports[0]) || {};
+  const entry = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    alias: r.appVersion ? ('v' + r.appVersion + ' - ' + (r.deviceType || 'Desconocido')) : 'Informe',
+    date: new Date().toISOString(),
+    device: r.deviceType || '',
+    appVersion: r.appVersion || '',
+    reportCount: (data.reports || []).length,
+    json: JSON.stringify(data)
+  };
+  list.unshift(entry);
+  if (list.length > 20) list.length = 20;
+  saveHistory(list);
+}
+
+function renderHistory() {
+  const section = document.getElementById('historySection');
+  const list = getHistory();
+  if (list.length === 0) {
+    section.innerHTML = '';
+    return;
+  }
+  let html = '<h3>&#128214; Historial</h3><div class="history-list">';
+  list.forEach((item, i) => {
+    html += `<div class="history-item" data-idx="${i}">
+      <div class="hi-info" onclick="loadFromHistory(${i})">
+        <div class="hi-alias">${esc(item.alias)}</div>
+        <div class="hi-meta">${fmtDate(item.date)} &middot; ${item.reportCount || 1} informe(s) &middot; ${esc(item.device)}</div>
+      </div>
+      <div class="hi-actions">
+        <button title="Renombrar" onclick="renameHistory(${i})">&#9998;</button>
+        <button title="Eliminar" onclick="deleteHistory(${i})">&#128465;</button>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  html += '<button class="clear-history-btn" onclick="clearHistory()">&#128465; Borrar todo el historial</button>';
+  section.innerHTML = html;
+}
+
+function loadFromHistory(idx) {
+  const list = getHistory();
+  if (!list[idx]) return;
+  try {
+    const data = JSON.parse(list[idx].json);
+    loadData(data, false);
+    toast('Cargado desde historial');
+  } catch (e) {
+    swalError('Error al cargar desde historial');
+  }
+}
+
+async function renameHistory(idx) {
+  const list = getHistory();
+  if (!list[idx]) return;
+  const newName = await swalPrompt('Nuevo nombre', list[idx].alias);
+  if (newName && newName.trim()) {
+    list[idx].alias = newName.trim();
+    saveHistory(list);
+    renderHistory();
+  }
+}
+
+function deleteHistory(idx) {
+  const list = getHistory();
+  list.splice(idx, 1);
+  saveHistory(list);
+  renderHistory();
+}
+
+async function clearHistory() {
+  const ok = await swalConfirm('Borrar historial', 'Se eliminaran todos los informes guardados.');
+  if (ok) {
+    saveHistory([]);
+    renderHistory();
+  }
+}
+
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+/* ============================================================
+   DATA LOADING
+   ============================================================ */
+function loadData(rawData, addHist) {
+  try {
+    currentData = normalizeData(rawData);
+    currentReportIndex = 0;
+    if (addHist !== false) addToHistory(rawData);
+
+    const reports = currentData.reports || [];
+    const sel = document.getElementById('reportSelector');
+    if (reports.length > 1) {
+      sel.innerHTML = reports.map((r, i) =>
+        `<option value="${i}">Informe ${i + 1} — ${r.appVersion || ''} (${fmtDate(r.generatedAt)})</option>`
+      ).join('');
+      sel.classList.remove('hidden');
+    } else {
+      sel.classList.add('hidden');
+    }
+
+    document.getElementById('btnShare').classList.remove('hidden');
+    document.getElementById('btnInicio').classList.remove('hidden');
+    document.getElementById('welcome').style.display = 'none';
+    document.getElementById('dashboard').classList.add('active');
+
+    renderDashboard();
+  } catch (e) {
+    console.error('Error loading data:', e);
+    swalError('Error al procesar los datos: ' + e.message);
+  }
+}
+
+function renderDashboard() {
+  try {
+    destroyCharts();
+    const report = currentData.reports[currentReportIndex];
+    if (!report) { toast('No hay informe disponible'); return; }
+    renderOverview(report);
+    renderMetrics(report);
+    renderCharts(report);
+    renderComparator();
+    renderDiagnostics(report);
+  } catch (e) {
+    console.error('renderDashboard error:', e);
+    swalError('Error al renderizar: ' + e.message);
+  }
+}
+
+/* ============================================================
+   RENDER: OVERVIEW
+   ============================================================ */
+function renderOverview(r) {
+  try {
+    const h = r.health || {};
+    const overall = h.overallStatus || 'unknown';
+    const overallSummary = h.overallSummary || (typeof h.overallStatus === 'object' ? h.overallStatus.summary : '') || '';
+    const c = healthColor(overall);
+
+    // Count health statuses
+    let healthyCount = 0, attentionCount = 0, categories = 0;
+    for (const [key, value] of Object.entries(h)) {
+      if (key === 'overallStatus' || key === 'overallSummary') continue;
+      categories++;
+      const st = typeof value === 'object' ? value.status : value;
+      if (st === 'healthy') healthyCount++;
+      else attentionCount++;
+    }
+
+    const grid = document.getElementById('bento-overview');
+    grid.innerHTML = `
+      <div class="card span-2">
+        <div class="card-header"><span class="card-icon">&#127973;</span><span class="card-title">Estado General</span></div>
+        <div class="health-semaphore">
+          <div class="semaphore-circle ${c}">${healthIcon(overall)}</div>
+          <div class="health-text">
+            <h3 style="color:var(--${c === 'healthy' ? 'green' : c === 'needsAttention' ? 'yellow' : c === 'critical' ? 'red' : 'orange'})">${healthLabel(overall)}</h3>
+            <p>${esc(overallSummary)}</p>
+          </div>
+        </div>
+        ${renderHealthDetails(h)}
+      </div>
+      <div class="card span-2 info-card">
+        <div class="card-header"><span class="card-icon">&#128241;</span><span class="card-title">Informacion</span></div>
+        <div class="chip-row">
+          ${r.appVersion ? `<span class="chip">&#128230; v${esc(r.appVersion)}</span>` : ''}
+          ${r.buildVersion ? `<span class="chip">&#128295; Build ${esc(r.buildVersion)}</span>` : ''}
+          ${r.deviceType ? `<span class="chip">&#128241; ${esc(r.deviceType)}</span>` : ''}
+          ${r.osVersion ? `<span class="chip">&#128187; iOS ${esc(r.osVersion)}</span>` : ''}
+          ${r.generatedAt ? `<span class="chip">&#128197; ${fmtDate(r.generatedAt)}</span>` : ''}
+          ${currentData.bundleIdentifier ? `<span class="chip">&#128230; ${esc(currentData.bundleIdentifier)}</span>` : ''}
+        </div>
+        <div class="mini-stats">
+          <div class="mini-stat"><div class="ms-val" style="color:var(--green)">${healthyCount}</div><div class="ms-label">Healthy</div></div>
+          <div class="mini-stat"><div class="ms-val" style="color:var(--yellow)">${attentionCount}</div><div class="ms-label">Attention</div></div>
+          <div class="mini-stat"><div class="ms-val" style="color:var(--cyan)">${categories}</div><div class="ms-label">Categories</div></div>
+          <div class="mini-stat"><div class="ms-val" style="color:var(--purple)">${(currentData.reports || []).length}</div><div class="ms-label">Reports</div></div>
+        </div>
+      </div>
+    `;
+  } catch (e) { console.error('renderOverview error:', e); }
+}
+
+function categoryLabel(key) {
+  const map = {
+    launch: 'Launch', cpu: 'CPU', gpu: 'GPU', memory: 'Memory',
+    disk: 'Disk', diskIO: 'Disk', network: 'Network', display: 'Display',
+    appRunTime: 'App Runtime', animation: 'Animation',
+    exits: 'App Exits', appExits: 'App Exits', diagnostics: 'Diagnostics',
+    responsiveness: 'Responsiveness'
+  };
+  return map[key] || key;
+}
+
+function renderHealthDetails(h) {
+  let html = '<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;">';
+  for (const [key, value] of Object.entries(h)) {
+    if (key === 'overallStatus' || key === 'overallSummary') continue;
+    const st = typeof value === 'object' ? value.status : value;
+    if (!st) continue;
+    const c = healthColor(st);
+    const cls = c === 'needsAttention' ? 'badge-needsAttention' : c === 'contextDependent' ? 'badge-contextDependent' : 'badge-' + c;
+    html += `<span class="health-badge ${cls}">${categoryLabel(key)}: ${healthLabel(st)}</span>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+/* ============================================================
+   RENDER: METRICS
+   ============================================================ */
+function renderMetrics(r) {
+  try {
+    const grid = document.getElementById('bento-metrics');
+    const h = r.health || {};
+    const hs = (key) => {
+      const v = h[key];
+      if (!v) return null;
+      return typeof v === 'object' ? v.status : v;
+    };
+
+    let cards = '';
+
+    // 1. Launch
+    cards += metricCard('&#128640;', 'Launch', hs('launch'), fmtMs(val(r, 'launch.timeToFirstDrawAverage', null)), 'Time to First Draw', [
+      ['Resume Time', fmtMs(val(r, 'launch.resumeTimeAverage', null))],
+      ['Optimized TTFD', fmtMs(val(r, 'launch.optimizedTimeToFirstDrawAverage', null))]
+    ]);
+
+    // 2. Responsiveness
+    cards += metricCard('&#9201;', 'Responsiveness', hs('hangTime') || hs('responsiveness'), fmtMs(val(r, 'responsiveness.hangTimeAverage', null)), 'Hang Time Avg', [
+      ['Hang Count', fmt(val(r, 'responsiveness.hangCount', null), 0)]
+    ]);
+
+    // 3. CPU
+    cards += metricCard('&#9889;', 'CPU', hs('cpu'), fmtTime(val(r, 'cpu.cumulativeCPUTime', null) != null ? val(r, 'cpu.cumulativeCPUTime') / 1000 : null), 'CPU Time', [
+      ['Instructions', val(r, 'cpu.cumulativeCPUInstructions', null) != null ? (val(r, 'cpu.cumulativeCPUInstructions') / 1e9).toFixed(1) + ' B' : '--']
+    ]);
+
+    // 4. GPU
+    cards += metricCard('&#127912;', 'GPU', hs('gpu'), fmtTime(val(r, 'gpu.cumulativeGPUTime', null) != null ? val(r, 'gpu.cumulativeGPUTime') / 1000 : null), 'GPU Time', []);
+
+    // 5. Memory
+    cards += metricCard('&#128190;', 'Memory', hs('memory'), fmtBytes(val(r, 'memory.peakMemoryUsage', null)), 'Peak Memory', [
+      ['Suspended Avg', fmtBytes(val(r, 'memory.averageSuspendedMemory', null))]
+    ]);
+
+    // 6. Disk I/O
+    cards += metricCard('&#128191;', 'Disk I/O', hs('disk'), fmtBytes(val(r, 'diskIO.cumulativeBytesWritten', null)), 'Bytes Written', []);
+
+    // 7. Network (span-2)
+    const netDown = (val(r, 'network.cumulativeWifiDownload', 0) || 0) + (val(r, 'network.cumulativeCellularDownload', 0) || 0);
+    const netUp = (val(r, 'network.cumulativeWifiUpload', 0) || 0) + (val(r, 'network.cumulativeCellularUpload', 0) || 0);
+    cards += metricCard('&#127760;', 'Network', hs('network'), fmtBytes(netDown + netUp), 'Total Transfer', [
+      ['WiFi Down', fmtBytes(val(r, 'network.cumulativeWifiDownload', null))],
+      ['WiFi Up', fmtBytes(val(r, 'network.cumulativeWifiUpload', null))],
+      ['Cellular Down', fmtBytes(val(r, 'network.cumulativeCellularDownload', null))],
+      ['Cellular Up', fmtBytes(val(r, 'network.cumulativeCellularUpload', null))]
+    ], 'span-2');
+
+    // 8. Display
+    cards += metricCard('&#128248;', 'Display', hs('display'), fmt(val(r, 'display.averagePixelLuminance', null), 2, 'APL'), 'Avg Luminance', []);
+
+    // 9. App Runtime
+    const fg = val(r, 'appRunTime.cumulativeForegroundTime', null);
+    const bg = val(r, 'appRunTime.cumulativeBackgroundTime', null);
+    cards += metricCard('&#9200;', 'App Runtime', null, fmtTime(fg), 'Foreground', [
+      ['Background', fmtTime(bg)],
+      ['BG Audio', fmtTime(val(r, 'appRunTime.cumulativeBackgroundAudioTime', null))],
+      ['BG Location', fmtTime(val(r, 'appRunTime.cumulativeBackgroundLocationTime', null))]
+    ]);
+
+    // 10. Animation
+    const hitchRatio = val(r, 'animation.scrollHitchRatio', null);
+    const hitchPct = hitchRatio != null ? Math.min(hitchRatio / 30 * 100, 100) : 0;
+    const hitchColor = hitchRatio != null ? (hitchRatio < 5 ? 'var(--green)' : hitchRatio < 15 ? 'var(--yellow)' : 'var(--red)') : 'var(--gray)';
+    cards += `<div class="card">
+      <div class="card-header"><span class="card-icon">&#127916;</span><span class="card-title">Animation</span>${healthBadge(hs('animation') || hs('scrollHitch'))}</div>
+      <div class="big-value">${hitchRatio != null ? fmt(hitchRatio, 1) : '--'}<span class="big-unit">ms/s</span></div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">Scroll Hitch Ratio</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${hitchPct}%;background:${hitchColor}"></div></div>
+    </div>`;
+
+    // 11. App Exits (span-2)
+    const fgExits = val(r, 'appExitMetrics.foregroundExitCounts', {});
+    const bgExits = val(r, 'appExitMetrics.backgroundExitCounts', {});
+    const exitHtml = renderExitGrid(fgExits, bgExits);
+    cards += `<div class="card span-2">
+      <div class="card-header"><span class="card-icon">&#128682;</span><span class="card-title">App Exits</span>${healthBadge(hs('exits') || hs('abnormalExits'))}</div>
+      ${exitHtml}
+    </div>`;
+
+    grid.innerHTML = cards;
+  } catch (e) { console.error('renderMetrics error:', e); }
+}
+
+function metricCard(icon, title, status, bigVal, bigLabel, rows, extraClass) {
+  let html = `<div class="card ${extraClass || ''}">`;
+  html += `<div class="card-header"><span class="card-icon">${icon}</span><span class="card-title">${title}</span>${status ? healthBadge(status) : ''}</div>`;
+  html += `<div class="big-value">${bigVal || '--'}</div>`;
+  html += `<div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">${bigLabel}</div>`;
+  if (rows && rows.length) {
+    rows.forEach(([label, value]) => {
+      if (value && value !== '--') {
+        html += `<div class="metric-row"><span class="metric-label">${label}</span><span class="metric-value">${value}</span></div>`;
+      }
+    });
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderExitGrid(fg, bg) {
+  const normalKeys = ['normalAppExit'];
+  function exitRow(key, count) {
+    const isHighlight = !normalKeys.includes(key) && count > 0;
+    const label = key.replace(/Exit$/, '').replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim();
+    return `<div class="exit-row ${isHighlight ? 'highlight' : ''}"><span class="er-label">${label}</span><span class="er-val">${count || 0}</span></div>`;
+  }
+  let html = '<div class="exit-grid"><div class="exit-col"><h4>Foreground</h4>';
+  for (const [k, v] of Object.entries(fg)) html += exitRow(k, v);
+  html += '</div><div class="exit-col"><h4>Background</h4>';
+  for (const [k, v] of Object.entries(bg)) html += exitRow(k, v);
+  html += '</div></div>';
+  return html;
+}
+
+/* ============================================================
+   RENDER: CHARTS
+   ============================================================ */
+function destroyCharts() {
+  chartInstances.forEach(c => { try { c.destroy(); } catch {} });
+  chartInstances = [];
+}
+
+function renderCharts(r) {
+  try {
+    const grid = document.getElementById('bento-charts');
+
+    if (typeof Chart === 'undefined') {
+      grid.innerHTML = '<div class="card span-full"><div class="chart-unavailable">&#128202; Charts unavailable — Chart.js no se pudo cargar</div></div>';
+      return;
+    }
+
+    const chartTextColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-text').trim() || '#888';
+    const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim() || 'rgba(128,128,128,0.1)';
+
+    const defaultOpts = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: chartTextColor, font: { size: 11 } } }
+      },
+      scales: {
+        x: { ticks: { color: chartTextColor, font: { size: 10 } }, grid: { color: gridColor } },
+        y: { ticks: { color: chartTextColor, font: { size: 10 } }, grid: { color: gridColor } }
+      }
+    };
+
+    let html = '';
+
+    // 1. Bar: Key Metrics
+    html += `<div class="card"><div class="card-header"><span class="card-icon">&#128202;</span><span class="card-title">Metricas Clave</span></div><div class="chart-wrap"><canvas id="chartBar"></canvas></div></div>`;
+
+    // 2. Donut: Health Distribution
+    html += `<div class="card"><div class="card-header"><span class="card-icon">&#127919;</span><span class="card-title">Distribucion de Salud</span></div><div class="chart-wrap"><canvas id="chartDonut"></canvas></div></div>`;
+
+    // 3. Trend (span-full)
+    html += `<div class="card span-full">
+      <div class="card-header">
+        <span class="card-icon">&#128200;</span><span class="card-title">Tendencia</span>
+        <select class="trend-selector" id="trendSelector">
+          <option value="launch">Launch Time</option>
+          <option value="cpu">CPU Time</option>
+          <option value="memory">Peak Memory</option>
+          <option value="disk">Disk Writes</option>
+          <option value="hitch">Hitch Ratio</option>
+        </select>
+      </div>
+      <div class="chart-wrap tall"><canvas id="chartTrend"></canvas></div>
+    </div>`;
+
+    // 4. Polar: Network
+    html += `<div class="card"><div class="card-header"><span class="card-icon">&#127760;</span><span class="card-title">Red WiFi vs Cellular</span></div><div class="chart-wrap"><canvas id="chartPolar"></canvas></div></div>`;
+
+    // 5. Horizontal Bar: Exits
+    html += `<div class="card"><div class="card-header"><span class="card-icon">&#128682;</span><span class="card-title">App Exits FG/BG</span></div><div class="chart-wrap"><canvas id="chartExits"></canvas></div></div>`;
+
+    grid.innerHTML = html;
+
+    // Now create the charts
+    setTimeout(() => {
+      try { createBarChart(r, defaultOpts, chartTextColor, gridColor); } catch (e) { console.error('Bar chart error:', e); }
+      try { createDonutChart(r, chartTextColor); } catch (e) { console.error('Donut chart error:', e); }
+      try { createTrendChart('launch', defaultOpts, chartTextColor, gridColor); } catch (e) { console.error('Trend chart error:', e); }
+      try { createPolarChart(r, chartTextColor); } catch (e) { console.error('Polar chart error:', e); }
+      try { createExitsChart(r, defaultOpts, chartTextColor, gridColor); } catch (e) { console.error('Exits chart error:', e); }
+
+      // Trend selector
+      const trendSel = document.getElementById('trendSelector');
+      if (trendSel) {
+        trendSel.addEventListener('change', () => {
+          try { createTrendChart(trendSel.value, defaultOpts, chartTextColor, gridColor); } catch (e) { console.error(e); }
+        });
+      }
+    }, 100);
+  } catch (e) { console.error('renderCharts error:', e); }
+}
+
+function createBarChart(r, opts, textColor, gridColor) {
+  const ctx = document.getElementById('chartBar');
+  if (!ctx) return;
+  const data = {
+    labels: ['Launch (ms)', 'CPU (s)', 'Memory (MB)', 'Disk (MB)', 'Hitch (ms/s)'],
+    datasets: [{
+      label: 'Valor',
+      data: [
+        val(r, 'launch.timeToFirstDrawAverage', 0),
+        val(r, 'cpu.cumulativeCPUTime', 0) / 1000,
+        val(r, 'memory.peakMemoryUsage', 0) / 1048576,
+        val(r, 'diskIO.cumulativeBytesWritten', 0) / 1048576,
+        val(r, 'animation.scrollHitchRatio', 0)
+      ],
+      backgroundColor: ['#8b5cf6', '#8be9fd', '#50fa7b', '#ffb86c', '#ff79c6'],
+      borderRadius: 6,
+      borderSkipped: false
+    }]
+  };
+  const chart = new Chart(ctx, {
+    type: 'bar', data,
+    options: { ...opts, plugins: { ...opts.plugins, legend: { display: false } }, indexAxis: 'x' }
+  });
+  chartInstances.push(chart);
+}
+
+function createDonutChart(r, textColor) {
+  const ctx = document.getElementById('chartDonut');
+  if (!ctx) return;
+  const h = r.health || {};
+  let healthy = 0, attention = 0, other = 0;
+  for (const [k, v] of Object.entries(h)) {
+    if (k === 'overallStatus' || k === 'overallSummary') continue;
+    const st = typeof v === 'object' ? v.status : v;
+    if (st === 'healthy') healthy++;
+    else if (st === 'needsAttention' || st === 'warning') attention++;
+    else other++;
+  }
+  const chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Healthy', 'Attention', 'Other'],
+      datasets: [{ data: [healthy, attention, other], backgroundColor: ['#50fa7b', '#f1fa8c', '#ffb86c'], borderWidth: 0 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { size: 11 }, padding: 12 } } },
+      cutout: '60%'
+    }
+  });
+  chartInstances.push(chart);
+}
+
+function createTrendChart(metric, opts, textColor, gridColor) {
+  const ctx = document.getElementById('chartTrend');
+  if (!ctx) return;
+  // Destroy existing trend chart
+  const existing = chartInstances.findIndex(c => c.canvas === ctx);
+  if (existing >= 0) { chartInstances[existing].destroy(); chartInstances.splice(existing, 1); }
+
+  const reports = currentData.reports || [];
+  const labels = reports.map((r, i) => r.generatedAt ? fmtDate(r.generatedAt) : ('Informe ' + (i + 1)));
+
+  const metricMap = {
+    launch: { label: 'Launch Time (ms)', fn: r => val(r, 'launch.timeToFirstDrawAverage', 0), color: '#8b5cf6' },
+    cpu: { label: 'CPU Time (s)', fn: r => val(r, 'cpu.cumulativeCPUTime', 0) / 1000, color: '#8be9fd' },
+    memory: { label: 'Peak Memory (MB)', fn: r => val(r, 'memory.peakMemoryUsage', 0) / 1048576, color: '#50fa7b' },
+    disk: { label: 'Disk Writes (MB)', fn: r => val(r, 'diskIO.cumulativeBytesWritten', 0) / 1048576, color: '#ffb86c' },
+    hitch: { label: 'Hitch Ratio (ms/s)', fn: r => val(r, 'animation.scrollHitchRatio', 0), color: '#ff79c6' }
+  };
+
+  const m = metricMap[metric] || metricMap.launch;
+  const values = reports.map(m.fn);
+
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: m.label, data: values,
+        borderColor: m.color, backgroundColor: m.color + '22',
+        fill: true, tension: 0.3, pointRadius: 5, pointHoverRadius: 7,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: textColor, font: { size: 11 } } } },
+      scales: {
+        x: { ticks: { color: textColor, font: { size: 10 }, maxRotation: 30 }, grid: { color: gridColor } },
+        y: { ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor }, beginAtZero: true }
+      }
+    }
+  });
+  chartInstances.push(chart);
+}
+
+function createPolarChart(r, textColor) {
+  const ctx = document.getElementById('chartPolar');
+  if (!ctx) return;
+  const chart = new Chart(ctx, {
+    type: 'polarArea',
+    data: {
+      labels: ['WiFi Down', 'WiFi Up', 'Cell Down', 'Cell Up'],
+      datasets: [{
+        data: [
+          (val(r, 'network.cumulativeWifiDownload', 0) || 0) / 1048576,
+          (val(r, 'network.cumulativeWifiUpload', 0) || 0) / 1048576,
+          (val(r, 'network.cumulativeCellularDownload', 0) || 0) / 1048576,
+          (val(r, 'network.cumulativeCellularUpload', 0) || 0) / 1048576
+        ],
+        backgroundColor: ['#8be9fd88', '#50fa7b88', '#ff79c688', '#ffb86c88'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { size: 10 }, padding: 8 } } },
+      scales: { r: { ticks: { color: textColor, font: { size: 9 }, backdropColor: 'transparent' }, grid: { color: 'rgba(128,128,128,0.15)' } } }
+    }
+  });
+  chartInstances.push(chart);
+}
+
+function createExitsChart(r, opts, textColor, gridColor) {
+  const ctx = document.getElementById('chartExits');
+  if (!ctx) return;
+  const fg = val(r, 'appExitMetrics.foregroundExitCounts', {});
+  const bg = val(r, 'appExitMetrics.backgroundExitCounts', {});
+  const allKeys = [...new Set([...Object.keys(fg), ...Object.keys(bg)])];
+  const labels = allKeys.map(k => k.replace(/Exit$/, '').replace(/([A-Z])/g, ' $1').trim());
+
+  const chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Foreground', data: allKeys.map(k => fg[k] || 0), backgroundColor: '#8b5cf688', borderRadius: 4 },
+        { label: 'Background', data: allKeys.map(k => bg[k] || 0), backgroundColor: '#8be9fd88', borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      plugins: { legend: { labels: { color: textColor, font: { size: 11 } } } },
+      scales: {
+        x: { stacked: true, ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor } },
+        y: { stacked: true, ticks: { color: textColor, font: { size: 9 } }, grid: { color: gridColor } }
+      }
+    }
+  });
+  chartInstances.push(chart);
+}
+
+/* ============================================================
+   RENDER: COMPARATOR
+   ============================================================ */
+function renderComparator() {
+  const title = document.getElementById('comparator-title');
+  const container = document.getElementById('comparator-container');
+  const reports = (currentData && currentData.reports) || [];
+
+  if (reports.length < 2) {
+    title.classList.add('hidden');
+    container.classList.add('hidden');
+    return;
+  }
+
+  title.classList.remove('hidden');
+  container.classList.remove('hidden');
+
+  // Build selector options
+  const opts = reports.map((r, i) =>
+    `<option value="${i}">Informe ${i + 1} — v${r.appVersion || '?'} (${fmtDate(r.generatedAt)})</option>`
+  ).join('');
+
+  // Default: compare last two reports
+  const idxA = reports.length - 2;
+  const idxB = reports.length - 1;
+
+  container.innerHTML = `
+    <div class="card span-full">
+      <div class="comparator-controls">
+        <select id="cmpSelectA">${opts}</select>
+        <span class="cmp-vs">VS</span>
+        <select id="cmpSelectB">${opts}</select>
+      </div>
+      <div id="cmpContent"></div>
+    </div>
+  `;
+
+  document.getElementById('cmpSelectA').value = idxA;
+  document.getElementById('cmpSelectB').value = idxB;
+
+  function doCompare() {
+    const a = reports[document.getElementById('cmpSelectA').value];
+    const b = reports[document.getElementById('cmpSelectB').value];
+    document.getElementById('cmpContent').innerHTML = buildComparison(a, b);
+  }
+
+  document.getElementById('cmpSelectA').addEventListener('change', doCompare);
+  document.getElementById('cmpSelectB').addEventListener('change', doCompare);
+  doCompare();
+}
+
+function buildComparison(a, b) {
+  // Define metrics to compare: [label, path, formatter, lowerIsBetter]
+  const metrics = [
+    { section: 'Launch' },
+    { label: 'Time to First Draw', path: 'launch.timeToFirstDrawAverage', fmt: fmtMs, lower: true },
+    { label: 'Resume Time', path: 'launch.resumeTimeAverage', fmt: fmtMs, lower: true },
+    { label: 'Optimized TTFD', path: 'launch.optimizedTimeToFirstDrawAverage', fmt: fmtMs, lower: true },
+    { section: 'Responsiveness' },
+    { label: 'Hang Time', path: 'responsiveness.hangTimeAverage', fmt: fmtMs, lower: true },
+    { label: 'Hang Count', path: 'responsiveness.hangCount', fmt: (v) => fmt(v, 0), lower: true },
+    { section: 'CPU / GPU' },
+    { label: 'CPU Time', path: 'cpu.cumulativeCPUTime', fmt: (v) => fmtMs(v), lower: true },
+    { label: 'CPU Instructions', path: 'cpu.cumulativeCPUInstructions', fmt: (v) => fmt(v, 0), lower: true },
+    { label: 'GPU Time', path: 'gpu.cumulativeGPUTime', fmt: (v) => fmtMs(v), lower: true },
+    { section: 'Memoria' },
+    { label: 'Pico de memoria', path: 'memory.peakMemoryUsage', fmt: fmtBytes, lower: true },
+    { label: 'Media suspendida', path: 'memory.averageSuspendedMemory', fmt: fmtBytes, lower: true },
+    { section: 'Disco' },
+    { label: 'Bytes escritos', path: 'diskIO.cumulativeBytesWritten', fmt: fmtBytes, lower: true },
+    { section: 'Red' },
+    { label: 'WiFi Download', path: 'network.cumulativeWifiDownload', fmt: fmtBytes, lower: false },
+    { label: 'WiFi Upload', path: 'network.cumulativeWifiUpload', fmt: fmtBytes, lower: false },
+    { label: 'Cellular Download', path: 'network.cumulativeCellularDownload', fmt: fmtBytes, lower: false },
+    { label: 'Cellular Upload', path: 'network.cumulativeCellularUpload', fmt: fmtBytes, lower: false },
+    { section: 'Animacion' },
+    { label: 'Scroll Hitch Ratio', path: 'animation.scrollHitchRatio', fmt: (v) => fmt(v, 2, 'ms/s'), lower: true },
+    { section: 'Tiempo de ejecucion' },
+    { label: 'Foreground', path: 'appRunTime.cumulativeForegroundTime', fmt: fmtTime, lower: false },
+    { label: 'Background', path: 'appRunTime.cumulativeBackgroundTime', fmt: fmtTime, lower: false },
+  ];
+
+  let html = '<div class="cmp-grid">';
+
+  for (const m of metrics) {
+    if (m.section) {
+      html += `<div class="cmp-section-label">${m.section}</div>`;
+      continue;
+    }
+
+    const vA = val(a, m.path, null);
+    const vB = val(b, m.path, null);
+    const fA = vA != null ? m.fmt(vA) : '--';
+    const fB = vB != null ? m.fmt(vB) : '--';
+
+    // Delta
+    let deltaHtml = '';
+    if (vA != null && vB != null && !isNaN(vA) && !isNaN(vB) && vA !== 0) {
+      const pct = ((vB - vA) / Math.abs(vA)) * 100;
+      const sign = pct > 0 ? '+' : '';
+      let cls = 'neutral';
+      if (Math.abs(pct) > 1) {
+        if (m.lower) {
+          cls = pct < 0 ? 'better' : 'worse';
+        } else {
+          cls = pct > 0 ? 'better' : 'worse';
+        }
+      }
+      const arrow = pct > 1 ? '\u2191' : pct < -1 ? '\u2193' : '\u2194';
+      deltaHtml = `<span class="arrow">${arrow}</span> ${sign}${pct.toFixed(1)}%`;
+      html += `<div class="cmp-row"><span class="cmp-label">${m.label}</span><span class="cmp-val">${fA}</span></div>`;
+      html += `<div class="cmp-delta ${cls}">${deltaHtml} <span style="font-weight:400;color:var(--text-secondary);margin-left:8px">${fB}</span></div>`;
+    } else {
+      html += `<div class="cmp-row"><span class="cmp-label">${m.label}</span><span class="cmp-val">${fA}</span></div>`;
+      html += `<div class="cmp-row" style="justify-content:center"><span class="cmp-val">${fB}</span></div>`;
+    }
+  }
+
+  html += '</div>';
+  return html;
+}
+
+/* ============================================================
+   RENDER: DIAGNOSTICS
+   ============================================================ */
+function renderDiagnostics(r) {
+  try {
+    const container = document.getElementById('diagnostics-container');
+    const diag = r.diagnostics || {};
+    const crashes = diag.crashes || [];
+    const hangs = diag.hangs || [];
+    const cpuExc = diag.cpuExceptions || [];
+    const diskExc = diag.diskWriteExceptions || [];
+    const total = crashes.length + hangs.length + cpuExc.length + diskExc.length;
+
+    if (total === 0) {
+      container.innerHTML = '<div class="card"><div class="no-diag">&#10004; Sin diagnosticos &mdash; no se detectaron problemas</div></div>';
+      return;
+    }
+
+    let rows = '';
+    crashes.forEach(c => {
+      rows += `<tr>
+        <td><span class="diag-type crash">Crash</span></td>
+        <td>${esc(c.exceptionType || '')} ${esc(c.exceptionCode || '')}<br><small style="color:var(--text-secondary)">${esc(c.signal || '')} ${esc(c.terminationReason || '')}</small></td>
+        <td>${c.callStackTree ? `<div class="callstack-pre">${esc(c.callStackTree)}</div>` : '--'}</td>
+      </tr>`;
+    });
+    hangs.forEach(h => {
+      const dur = h.hangDuration != null ? (h.hangDuration_unit === 's' ? fmt(h.hangDuration, 1, 's') : fmtMs(h.hangDuration)) : (h.hangDuration != null ? fmt(h.hangDuration, 0, 'ms') : '');
+      rows += `<tr>
+        <td><span class="diag-type hang">Hang</span></td>
+        <td>Duracion: ${dur}</td>
+        <td>${h.callStackTree ? `<div class="callstack-pre">${esc(h.callStackTree)}</div>` : '--'}</td>
+      </tr>`;
+    });
+    cpuExc.forEach(c => {
+      const cpuTime = c.totalCPUTime != null ? fmt(c.totalCPUTime, 1, c.totalCPUTime_unit || 's') : '';
+      rows += `<tr>
+        <td><span class="diag-type cpu-exc">CPU Exc</span></td>
+        <td>CPU Time: ${cpuTime}</td>
+        <td>${c.callStackTree ? `<div class="callstack-pre">${esc(c.callStackTree)}</div>` : '--'}</td>
+      </tr>`;
+    });
+    diskExc.forEach(d => {
+      const writes = d.totalWritesCaused != null ? fmt(d.totalWritesCaused, 1, d.totalWritesCaused_unit || 'MB') : '';
+      rows += `<tr>
+        <td><span class="diag-type disk-exc">Disk Exc</span></td>
+        <td>Writes: ${writes}</td>
+        <td>${d.callStackTree ? `<div class="callstack-pre">${esc(d.callStackTree)}</div>` : '--'}</td>
+      </tr>`;
+    });
+
+    container.innerHTML = `<div class="card">
+      <table class="diag-table">
+        <thead><tr><th>Tipo</th><th>Detalle</th><th>Call Stack</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  } catch (e) { console.error('renderDiagnostics error:', e); }
+}
+
+/* ============================================================
+   SHARE
+   ============================================================ */
+function shareData() {
+  if (!currentData) return;
+  try {
+    if (typeof pako === 'undefined') { toast('pako no disponible'); return; }
+    const json = JSON.stringify(currentData);
+    const compressed = pako.deflate(json);
+    let binary = '';
+    const chunk = 8192;
+    for (let i = 0; i < compressed.length; i += chunk) {
+      binary += String.fromCharCode.apply(null, compressed.subarray(i, i + chunk));
+    }
+    const base64 = btoa(binary);
+    const url = location.origin + location.pathname + '#data=' + encodeURIComponent(base64);
+    document.getElementById('shareUrl').value = url;
+    document.getElementById('shareModal').classList.add('active');
+  } catch (e) {
+    swalError('Error al generar URL: ' + e.message);
+  }
+}
+
+function loadFromUrl() {
+  try {
+    const hash = location.hash;
+    if (!hash.startsWith('#data=')) return false;
+    if (typeof pako === 'undefined') return false;
+    const base64 = decodeURIComponent(hash.slice(6));
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const json = pako.inflate(bytes, { to: 'string' });
+    const data = JSON.parse(json);
+    loadData(data, true);
+    return true;
+  } catch (e) {
+    console.error('Error loading from URL:', e);
+    return false;
+  }
+}
+
+/* ============================================================
+   EVENT HANDLERS
+   ============================================================ */
+// Theme toggle
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const isLight = document.documentElement.classList.toggle('light');
+  document.getElementById('themeToggle').innerHTML = isLight ? '&#9728;' : '&#127769;';
+  try { localStorage.setItem('mkr_theme', isLight ? 'light' : 'dark'); } catch {}
+  // Re-render charts if dashboard is active
+  if (currentData) {
+    const report = currentData.reports[currentReportIndex];
+    if (report) {
+      destroyCharts();
+      setTimeout(() => renderCharts(report), 50);
+    }
+  }
+});
+
+// Restore theme
+try {
+  if (localStorage.getItem('mkr_theme') === 'light') {
+    document.documentElement.classList.add('light');
+    document.getElementById('themeToggle').innerHTML = '&#9728;';
+  }
+} catch {}
+
+// File input
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      loadData(data);
+      toast('JSON cargado correctamente');
+    } catch (err) {
+      swalError('Error al parsear JSON: ' + err.message);
+    }
+  };
+  reader.onerror = () => swalError('Error al leer el archivo');
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+// Demo button
+document.getElementById('btnDemo').addEventListener('click', () => {
+  const data = generateDemoData();
+  loadData(data);
+  toast('Datos demo generados');
+});
+
+// Share button
+document.getElementById('btnShare').addEventListener('click', shareData);
+
+// Inicio button
+document.getElementById('btnInicio').addEventListener('click', () => {
+  document.getElementById('dashboard').classList.remove('active');
+  document.getElementById('welcome').style.display = '';
+  document.getElementById('btnShare').classList.add('hidden');
+  document.getElementById('btnInicio').classList.add('hidden');
+  document.getElementById('reportSelector').classList.add('hidden');
+  currentData = null;
+  destroyCharts();
+  renderHistory();
+});
+
+// Report selector
+document.getElementById('reportSelector').addEventListener('change', (e) => {
+  currentReportIndex = parseInt(e.target.value) || 0;
+  renderDashboard();
+});
+
+// Share modal
+document.getElementById('btnCloseModal').addEventListener('click', () => {
+  document.getElementById('shareModal').classList.remove('active');
+});
+document.getElementById('btnCopyUrl').addEventListener('click', () => {
+  const urlEl = document.getElementById('shareUrl');
+  urlEl.select();
+  try {
+    navigator.clipboard.writeText(urlEl.value).then(() => toast('URL copiada'));
+  } catch {
+    document.execCommand('copy');
+    toast('URL copiada');
+  }
+});
+document.getElementById('shareModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.remove('active');
+});
+
+// Paste toggle
+document.getElementById('pasteToggle').addEventListener('click', () => {
+  const c = document.getElementById('pasteContainer');
+  const t = document.getElementById('pasteToggle');
+  const isHidden = c.classList.toggle('hidden');
+  t.innerHTML = (isHidden ? '&#9660;' : '&#9650;') + ' Pegar JSON manualmente';
+});
+
+// Paste load
+document.getElementById('btnPasteLoad').addEventListener('click', () => {
+  const text = document.getElementById('pasteTextarea').value.trim();
+  if (!text) { toast('Pega el JSON primero'); return; }
+  try {
+    const data = JSON.parse(text);
+    loadData(data);
+    toast('JSON cargado correctamente');
+  } catch (err) {
+    swalError('Error al parsear JSON: ' + err.message);
+  }
+});
+
+// Drag & Drop
+let dragCounter = 0;
+document.addEventListener('dragenter', (e) => {
+  e.preventDefault();
+  dragCounter++;
+  document.getElementById('dropOverlay').classList.add('active');
+});
+document.addEventListener('dragleave', (e) => {
+  e.preventDefault();
+  dragCounter--;
+  if (dragCounter <= 0) {
+    dragCounter = 0;
+    document.getElementById('dropOverlay').classList.remove('active');
+  }
+});
+document.addEventListener('dragover', (e) => e.preventDefault());
+document.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dragCounter = 0;
+  document.getElementById('dropOverlay').classList.remove('active');
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      loadData(data);
+      toast('JSON cargado correctamente');
+    } catch (err) {
+      swalError('Error al parsear JSON: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderHistory();
+if (!loadFromUrl()) {
+  // Show welcome
+}
+</script>
+</body>
+</html>
