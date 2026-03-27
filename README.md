@@ -1,6 +1,6 @@
 # MetricKitReporter Dashboard
 
-Dashboard web estático para visualizar métricas de iOS exportadas en JSON por [MetricKitReporter](https://github.com/javiermmdev/ios-metrics-visualizer).
+Dashboard web estático para visualizar métricas de iOS exportadas en JSON
 
 ## Qué hace
 
@@ -57,20 +57,11 @@ El dashboard espera un JSON con la estructura que genera `MetricKitReporter`:
   ]
 }
 ```
-
-Consulta el [README de MetricKitReporter](https://github.com/javiermmdev/ios-metrics-visualizer) para ver la estructura completa.
-
 ## Tecnologías
 
 - HTML, CSS y JavaScript puro (sin frameworks)
 - [Chart.js](https://www.chartjs.org/) desde CDN para gráficos
 - [Luxon](https://moment.github.io/luxon/) como adaptador de fechas para Chart.js
 - GitHub Pages para el hosting
-
-## Uso
-
-1. Abre [la página](https://javiermmdev.github.io/ios-metrics-visualizer/)
-2. Pulsa **Cargar JSON** o arrastra un archivo exportado por MetricKitReporter
-3. Explora las métricas, gráficos y diagnósticos
 
 También puedes pulsar **Demo** para ver el dashboard con datos de ejemplo.
